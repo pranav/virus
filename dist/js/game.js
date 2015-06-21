@@ -1,5 +1,5 @@
 (function() {
-  var DOWN, Game, HEIGHT, Hero, LEFT, Person, RIGHT, UP, VirusSprite, WIDTH, Zombie, addGameToStage, animate, i, mainLoop, renderer, stage, virusOnKeyDown, virusOnKeyUp, zombiesTouchingPerson,
+  var DOWN, Game, GameSettings, HEIGHT, Hero, LEFT, Person, RIGHT, UP, VirusSprite, WIDTH, Zombie, addGameToStage, animate, grabAndSetVars, i, mainLoop, renderer, stage, virusOnKeyDown, virusOnKeyUp, zombiesTouchingPerson,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -12,7 +12,7 @@
     backgroundColor: 0x1099bb
   });
 
-  document.body.appendChild(renderer.view);
+  document.getElementById("gamecontainer").appendChild(renderer.view);
 
   stage = new PIXI.Container();
 
@@ -23,6 +23,10 @@
   DOWN = 38;
 
   RIGHT = 39;
+
+  GameSettings = {
+    zombieSpeed: 3
+  };
 
   VirusSprite = (function() {
     function VirusSprite(x, y, w, h, image) {
@@ -116,7 +120,9 @@
     };
 
     VirusSprite.prototype.touching = function(other_sprite) {
-      return (Math.abs(other_sprite.sprite.position.x - this.sprite.position.x) < this.sprite.width) && (Math.abs(other_sprite.sprite.position.y - this.sprite.position.y) < this.sprite.height);
+      var magicNumber;
+      magicNumber = 7;
+      return (Math.abs(other_sprite.sprite.position.x - this.sprite.position.x) < this.sprite.width - magicNumber) && (Math.abs(other_sprite.sprite.position.y - this.sprite.position.y) < this.sprite.height - magicNumber);
     };
 
     VirusSprite.prototype.tick = function() {
@@ -175,8 +181,9 @@
   Zombie = (function(_super) {
     __extends(Zombie, _super);
 
-    function Zombie(x, y) {
+    function Zombie(x, y, speed) {
       Zombie.__super__.constructor.call(this, x, y, 50, 50, '/img/infected_person.png');
+      this.movementSpeed = speed;
     }
 
     return Zombie;
@@ -186,7 +193,10 @@
   virusOnKeyDown = function(keyEvent) {
     var _ref;
     if ((_ref = keyEvent.keyCode) === LEFT || _ref === RIGHT || _ref === UP || _ref === DOWN) {
-      return Game.keysDown.push(keyEvent.keyCode);
+      Game.keysDown.push(keyEvent.keyCode);
+    }
+    if (keyEvent.keyCode === 80) {
+      return Game.paused = !Game.paused;
     }
   };
 
@@ -197,11 +207,14 @@
   };
 
   Game = {
+    settings: GameSettings,
     hero: new Hero(WIDTH / 4, HEIGHT / 2, 50, 50),
     people: [],
-    zombies: [new Zombie(3 * WIDTH / 4, HEIGHT / 2)],
+    zombies: [new Zombie(3 * WIDTH / 4, HEIGHT / 2, GameSettings.zombieSpeed)],
     keysDown: [],
-    startTime: +new Date()
+    startTime: +new Date(),
+    paused: false,
+    gameover: false
   };
 
   Game.people = (function() {
@@ -259,6 +272,10 @@
 
   mainLoop = function() {
     var peopleTouchingZombies, person, text, timeLasted, zombie, _i, _j, _len, _len1, _ref, _ref1;
+    grabAndSetVars();
+    if (Game.paused || Game.gameover) {
+      return true;
+    }
     if (!zombiesTouchingPerson(Game.hero)) {
       Game.hero.tick();
       _ref = Game.people;
@@ -280,7 +297,7 @@
           _results = [];
           for (_k = 0, _len2 = peopleTouchingZombies.length; _k < _len2; _k++) {
             person = peopleTouchingZombies[_k];
-            _results.push(new Zombie(person.sprite.position.x, person.sprite.position.y));
+            _results.push(new Zombie(person.sprite.position.x, person.sprite.position.y, Game.settings.zombieSpeed));
           }
           return _results;
         })());
@@ -296,15 +313,20 @@
       }
       timeLasted = parseInt(Game.endTime / 1000 - Game.startTime / 1000);
       text = new PIXI.Text("You were infected. You lose. You lasted " + timeLasted + " seconds.", {
-        font: "24px Impact bold",
+        font: "36px Impact",
         fill: "#FFFFFF",
         stroke: "#000000",
         strokeThickness: 5
       });
       text.x = 10;
       text.y = HEIGHT / 2;
-      return stage.addChild(text);
+      stage.addChild(text);
+      return Game.gameover = true;
     }
+  };
+
+  grabAndSetVars = function() {
+    return Game.settings.zombieSpeed = parseInt(document.getElementById("speed").value);
   };
 
   zombiesTouchingPerson = function(person) {

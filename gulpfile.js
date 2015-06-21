@@ -31,6 +31,12 @@ gulp.task('html', function() {
 gulp.task('third-party', function() {
     gulp.src('./src/third-party/pixi.js/bin/pixi.js')
         .pipe(gulp.dest('dist/third-party/pixi.js'))
+
+    gulp.src('./src/third-party/bootstrap/js/bootstrap.min.js')
+        .pipe(gulp.dest('dist/third-party/bootstrap/'))
+
+    gulp.src('./src/third-party/bootstrap/css/bootstrap.min.css')
+        .pipe(gulp.dest('dist/third-party/bootstrap/'))
 })
 
 connectOptions = {

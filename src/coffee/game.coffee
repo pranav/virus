@@ -2,7 +2,7 @@
 WIDTH = 800
 HEIGHT = 600
 renderer = PIXI.autoDetectRenderer(WIDTH, HEIGHT, {backgroundColor : 0x1099bb})
-document.body.appendChild(renderer.view);
+document.getElementById("gamecontainer").appendChild(renderer.view)
 stage = new PIXI.Container();
 
 # KEYS
@@ -10,6 +10,9 @@ LEFT = 37
 UP = 40
 DOWN = 38
 RIGHT = 39
+
+GameSettings =
+  zombieSpeed: 3
 
 # Sprite definitions
 class VirusSprite
@@ -85,8 +88,9 @@ class VirusSprite
       @lowerVY()
 
   touching: (other_sprite) ->
-    (Math.abs(other_sprite.sprite.position.x - @sprite.position.x) < @sprite.width) and
-      (Math.abs(other_sprite.sprite.position.y - @sprite.position.y) < @sprite.height)
+    magicNumber = 7
+    (Math.abs(other_sprite.sprite.position.x - @sprite.position.x) < @sprite.width - magicNumber) and
+      (Math.abs(other_sprite.sprite.position.y - @sprite.position.y) < @sprite.height - magicNumber)
 
   tick: ->
     @applyVelocity()
@@ -118,14 +122,19 @@ class Person extends VirusSprite
   constructor: (x, y) ->
     super(x, y, 50, 50, '/img/healthy_person.png')
 
+
 class Zombie extends VirusSprite
-  constructor: (x, y) ->
+  constructor: (x, y, speed) ->
     super(x, y, 50, 50, '/img/infected_person.png')
+    @movementSpeed = speed
+
 
 # KEY HANDLERS
 virusOnKeyDown = (keyEvent) ->
   if keyEvent.keyCode in [LEFT, RIGHT, UP, DOWN]
     Game.keysDown.push(keyEvent.keyCode)
+  if keyEvent.keyCode is 80 # P
+    Game.paused = not Game.paused
 
 
 virusOnKeyUp = (keyEvent) ->
@@ -134,16 +143,20 @@ virusOnKeyUp = (keyEvent) ->
 
 # Setup the Game object
 Game =
+  settings: GameSettings
   hero: new Hero(WIDTH/4, HEIGHT/2, 50, 50)
   people: []
-  zombies: [new Zombie(3*WIDTH/4, HEIGHT/2)]
+  zombies: [new Zombie(3*WIDTH/4, HEIGHT/2, GameSettings.zombieSpeed)]
   keysDown: []
   startTime: +new Date()
+  paused: false
+  gameover: false
 
 Game.people = (new Person(i*100, 50) for i in [1..7])
 Game.people = Game.people.concat((new Person(i*100, HEIGHT-HEIGHT/7) for i in [1..7]))
 Game.people = Game.people.concat((new Person(i*100, HEIGHT-HEIGHT/5) for i in [1..7]))
 Game.people = Game.people.concat((new Person(i*100, HEIGHT-HEIGHT/3) for i in [1..7]))
+
 
 addGameToStage = ->
   (stage.addChild(person.sprite) for person in Game.people)
@@ -153,6 +166,10 @@ addGameToStage()
 
 
 mainLoop = () ->
+  grabAndSetVars()
+
+  if Game.paused or Game.gameover
+    return true
   if not zombiesTouchingPerson(Game.hero)
     Game.hero.tick()
     (person.tick() for person in Game.people)
@@ -161,7 +178,7 @@ mainLoop = () ->
     peopleTouchingZombies = Game.people.filter (person) -> zombiesTouchingPerson(person)
 
     if peopleTouchingZombies.length > 0
-      Game.zombies = Game.zombies.concat(new Zombie(person.sprite.position.x, person.sprite.position.y) for person in peopleTouchingZombies)
+      Game.zombies = Game.zombies.concat(new Zombie(person.sprite.position.x, person.sprite.position.y, Game.settings.zombieSpeed) for person in peopleTouchingZombies)
       Game.people = Game.people.filter (person) -> not zombiesTouchingPerson(person)
       stage.removeChildren()
     addGameToStage()
@@ -170,7 +187,7 @@ mainLoop = () ->
       Game.endTime = (+new Date())
     timeLasted = parseInt(Game.endTime/1000 - Game.startTime/1000)
     text = new PIXI.Text("You were infected. You lose. You lasted #{timeLasted} seconds.", {
-      font: "24px Impact bold",
+      font: "36px Impact",
       fill: "#FFFFFF",
       stroke: "#000000",
       strokeThickness: 5
@@ -178,7 +195,11 @@ mainLoop = () ->
     text.x = 10
     text.y = HEIGHT/2
     stage.addChild(text)
+    Game.gameover = true
 
+
+grabAndSetVars = ->
+  Game.settings.zombieSpeed = parseInt(document.getElementById("speed").value)
 
 zombiesTouchingPerson = (person) ->
   Game.zombies.reduce (touchingany, zombie) ->
@@ -191,7 +212,6 @@ animate = ->
   renderer.render(stage)
 
 animate()
-
 
 # Set up Key listeners
 window.addEventListener("keydown", virusOnKeyDown)
