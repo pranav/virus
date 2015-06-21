@@ -1,0 +1,8 @@
+{
+  "name": "virus",
+  "version": "1.0.0",
+  "devDependencies": {
+    "pixi.js": "3.0.6"
+  },
+  "dependencies": {}
+}
