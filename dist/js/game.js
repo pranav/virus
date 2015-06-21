@@ -139,7 +139,7 @@
     __extends(Hero, _super);
 
     function Hero(x, y, w, h) {
-      Hero.__super__.constructor.call(this, x, y, w, h, '/img/hero.png');
+      Hero.__super__.constructor.call(this, x, y, w, h, '/dist/img/hero.png');
     }
 
     Hero.prototype.applyKeysDown = function() {
@@ -171,7 +171,7 @@
     __extends(Person, _super);
 
     function Person(x, y) {
-      Person.__super__.constructor.call(this, x, y, 50, 50, '/img/healthy_person.png');
+      Person.__super__.constructor.call(this, x, y, 50, 50, '/dist/img/healthy_person.png');
     }
 
     return Person;
@@ -182,7 +182,7 @@
     __extends(Zombie, _super);
 
     function Zombie(x, y, speed) {
-      Zombie.__super__.constructor.call(this, x, y, 50, 50, '/img/infected_person.png');
+      Zombie.__super__.constructor.call(this, x, y, 50, 50, '/dist/img/infected_person.png');
       this.movementSpeed = speed;
     }
 
