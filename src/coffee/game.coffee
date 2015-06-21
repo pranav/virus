@@ -100,7 +100,7 @@ class VirusSprite
 
 class Hero extends VirusSprite
   constructor: (x, y, w, h) ->
-    super(x, y, w, h, '/dist/img/hero.png')
+    super(x, y, w, h, '/virus/dist/img/hero.png')
 
   applyKeysDown: ->
     if LEFT in Game.keysDown
@@ -120,12 +120,12 @@ class Hero extends VirusSprite
 
 class Person extends VirusSprite
   constructor: (x, y) ->
-    super(x, y, 50, 50, '/dist/img/healthy_person.png')
+    super(x, y, 50, 50, '/virus/dist/img/healthy_person.png')
 
 
 class Zombie extends VirusSprite
   constructor: (x, y, speed) ->
-    super(x, y, 50, 50, '/dist/img/infected_person.png')
+    super(x, y, 50, 50, '/virus/dist/img/infected_person.png')
     @movementSpeed = speed
 
 
